@@ -1,0 +1,5 @@
+{
+  "name": "GGST RCC Trainer",
+  "description": "A minimalist, elegant web app for practicing Guilty Gear Strive Fast Roman Cancel (RCC) timing.",
+  "requestFramePermissions": ["gamepad"]
+}
