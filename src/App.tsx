@@ -239,7 +239,7 @@ const VirtualJoystick = ({ direction, show, onClose }: { direction: number, show
   }, [pos.x, pos.y, stickX, stickY]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const lastExactPos = useRef({ x: 64, y: 64 });
+  const pathHistory = useRef<{ x: number, y: number }[]>([{ x: 64, y: 64 }]);
   const clearCanvasTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize canvas
@@ -264,32 +264,56 @@ const VirtualJoystick = ({ direction, show, onClose }: { direction: number, show
 
     const currentX = pos.x + 64;
     const currentY = pos.y + 64;
+    const history = pathHistory.current;
+    const lastPos = history[history.length - 1];
 
-    if (lastExactPos.current.x !== currentX || lastExactPos.current.y !== currentY) {
-      ctx.beginPath();
-      ctx.moveTo(lastExactPos.current.x, lastExactPos.current.y);
-      ctx.lineTo(currentX, currentY);
-      ctx.strokeStyle = 'rgba(29, 131, 133, 1)';
-      ctx.lineWidth = 16;
-      ctx.lineCap = 'square';
-      ctx.lineJoin = 'miter';
-      ctx.stroke();
+    if (!lastPos || lastPos.x !== currentX || lastPos.y !== currentY) {
+      history.push({ x: currentX, y: currentY });
 
-      // Draw a small dot at the vertex for extra mechanical feel
-      ctx.beginPath();
-      ctx.arc(currentX, currentY, 8, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(29, 131, 133, 1)';
-      ctx.fill();
+      // Keep max 5 points (4 segments)
+      if (history.length > 5) {
+        history.shift();
+      }
 
-      lastExactPos.current = { x: currentX, y: currentY };
+      // Redraw the entire history
+      ctx.clearRect(0, 0, 128, 128);
+
+      if (history.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(history[0].x, history[0].y);
+        for (let i = 1; i < history.length; i++) {
+          ctx.lineTo(history[i].x, history[i].y);
+        }
+        ctx.strokeStyle = 'rgba(29, 131, 133, 1)';
+        ctx.lineWidth = 16;
+        ctx.lineCap = 'square';
+        ctx.lineJoin = 'miter';
+        ctx.stroke();
+      }
+
+      // Draw dots at all vertices
+      for (let i = 0; i < history.length; i++) {
+        ctx.beginPath();
+        ctx.arc(history[i].x, history[i].y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(29, 131, 133, 1)';
+        ctx.fill();
+      }
 
       if (clearCanvasTimeoutRef.current) {
         clearTimeout(clearCanvasTimeoutRef.current);
       }
       clearCanvasTimeoutRef.current = setTimeout(() => {
+        history.length = 0;
+        history.push({ x: currentX, y: currentY }); // Reset to current resting position
         ctx.clearRect(0, 0, 128, 128);
-      }, 400);
+      }, 150);
     }
+
+    return () => {
+      if (clearCanvasTimeoutRef.current) {
+        clearTimeout(clearCanvasTimeoutRef.current);
+      }
+    };
   }, [pos.x, pos.y]);
 
   if (!show) return null;
