@@ -101,11 +101,17 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
   }, []);
 
   const stopTimer = useCallback(() => {
+    // Must be in count=1 state (timer was started)
     if (pressCountRef.current !== 1) return;
     const now = performance.now();
-    // Deduplicate: ignore rapid re-invocations within 50ms
-    if (now - lastT2Ref.current < 50) return;
+    // Deduplicate rapid re-invocations (same keydown event can fire multiple callbacks)
+    if (now - lastT2Ref.current < 80) return;
     lastT2Ref.current = now;
+
+    // Guard: don't allow stopTimer right after startTimer (<80ms) —
+    // this prevents the same physical keypress from being counted as both start and stop
+    if (t1Ref.current && (now - t1Ref.current) < 80) return;
+
     setT2Time(now);
     setBtn2Active(true);
     setTimeout(() => setBtn2Active(false), 100);
