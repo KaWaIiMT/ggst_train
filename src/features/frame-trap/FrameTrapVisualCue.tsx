@@ -1,6 +1,5 @@
 import React from 'react';
 import { VisualCueBar } from '../../components/ui/VisualCueBar';
-import type { VisualCueSegment, VisualCueLabel } from '../../components/ui/VisualCueBar';
 import type { FrameTrapPreset, FrameTrapSettings } from '../../types';
 
 export const FrameTrapVisualCue: React.FC<{
@@ -25,7 +24,7 @@ export const FrameTrapVisualCue: React.FC<{
     const targetStartPct = targetStart / totalFrames;
     const targetEndPct   = targetEnd / totalFrames;
 
-    const segments: VisualCueSegment[] = [
+    const segments = [
       {
         label: 'hitstop',
         startPct: 0,
@@ -52,7 +51,7 @@ export const FrameTrapVisualCue: React.FC<{
       },
     ];
 
-    const labels: VisualCueLabel[] = [
+    const labels = [
       { position: 0, label: '0f (hit)' },
       { position: hitstopPct, label: `${preset.hitstopFrames}f` },
       { position: blockstunEndPct, label: `${preset.hitstopFrames + preset.blockstunFrames}f` },
@@ -88,13 +87,13 @@ export const FrameTrapVisualCue: React.FC<{
   const simpleTargetStartPct = settings.delayMin / totalFrames;
   const simpleTargetEndPct   = settings.delayMax / totalFrames;
 
-  const segments: VisualCueSegment[] = [
+  const segments = [
     { label: 'early', startPct: 0, endPct: simpleTargetStartPct, color: 'var(--color-barEarly)' },
     { label: 'target', startPct: simpleTargetStartPct, endPct: simpleTargetEndPct, color: 'var(--color-barSuccess)' },
     { label: 'late', startPct: simpleTargetEndPct, endPct: 1, color: 'var(--color-barLate)' },
   ];
 
-  const labels: VisualCueLabel[] = [
+  const labels = [
     { position: 0, label: '0f' },
     { position: simpleTargetStartPct, label: `${settings.delayMin}f` },
     { position: simpleTargetEndPct, label: `${settings.delayMax}f` },
