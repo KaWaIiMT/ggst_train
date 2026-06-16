@@ -82,8 +82,13 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
     };
   }, []);
 
+  // Used to debounce key repeats for GGST buttons
+  const keysPressed = useRef<Set<string>>(new Set());
+
   // --- Trigger logic ---
   const startTimer = useCallback(() => {
+    // Already started; ignore duplicate presses
+    if (pressCountRef.current !== 0) return;
     triggerTimeRef.current = performance.now();
     setTriggerTime(triggerTimeRef.current);
     setHitTime(null);
@@ -99,6 +104,8 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
   }, []);
 
   const stopTimer = useCallback(() => {
+    // Not started yet; ignore
+    if (pressCountRef.current !== 1) return;
     const now = performance.now();
     setHitTime(now);
     setButton2Active(true);
@@ -159,24 +166,34 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
       const btn = GGST_BUTTONS.find(b => ggstBinds[b].key === e.code);
       if (!btn) return;
 
+      // Prevent repeat triggers (holding the key)
+      if (keysPressed.current.has(e.code)) return;
+      keysPressed.current.add(e.code);
+
       e.preventDefault();
       setInputDevice('keyboard');
 
       if (currentTriggerMode === 'single') {
-        // Only the first active button matters
         if (btn === activeButtons[0]) {
           if (pressCountRef.current === 0) startTimer();
-          else stopTimer();
+          else if (pressCountRef.current === 1) stopTimer();
         }
       } else {
-        // Dual mode: button1 starts, button2 stops
         if (btn === activeButtons[0]) startTimer();
         else if (btn === activeButtons[1]) stopTimer();
       }
     };
 
+    const handleKeyUp = (e: KeyboardEvent) => {
+      keysPressed.current.delete(e.code);
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, [ggstBinds, listeningButton, startTimer, stopTimer, currentTriggerMode, activeButtons]);
 
   // --- Gamepad ---

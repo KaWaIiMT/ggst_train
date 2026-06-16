@@ -123,10 +123,16 @@ export interface FrameTrapPreset {
   move2: FrameTrapMove;
   buttons: GgstButton[];
   triggerMode: TriggerMode;
-  blockstunFrames: number;
-  delayWindowMin: number;
-  delayWindowMax: number;
-  totalFrames: number;
+  // ── GGST engine parameters ──
+  attackLevel: number;           // 0-4, determines blockstun & hitstop
+  blockstunFrames: number;       // defender blockstun (from attack level table)
+  hitstopFrames: number;         // hitstop freeze (from attack level table)
+  cancelWindowStart: number;     // earliest cancel frame (0 = as early as possible)
+  cancelWindowEnd: number;       // latest cancel frame (recovery end)
+  inputBuffer: number;           // GGST universal input buffer (5f since v1.10)
+  targetGapMin: number;          // min gap for successful frame trap (defender can act)
+  targetGapMax: number;          // max gap for successful frame trap
+  totalFrames: number;           // total visual cue duration
   source: string;
 }
 

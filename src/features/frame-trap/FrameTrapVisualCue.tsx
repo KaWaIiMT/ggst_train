@@ -10,30 +10,61 @@ export const FrameTrapVisualCue: React.FC<{
   show: boolean;
   preset: FrameTrapPreset | null;
   settings: FrameTrapSettings;
-}> = ({ triggerTime, hitTime, feedbackFrames, show, preset, settings }) => {
+  // The target frame window in "absolute" time from trigger
+  targetStart: number;
+  targetEnd: number;
+}> = ({ triggerTime, hitTime, feedbackFrames, show, preset, settings, targetStart, targetEnd }) => {
   const totalFrames = preset ? preset.totalFrames : settings.totalFrames;
-  const delayMin = preset ? preset.delayWindowMin : settings.delayMin;
-  const delayMax = preset ? preset.delayWindowMax : settings.delayMax;
 
   if (preset) {
-    // Complex version: blockstun | delay gap | target window | recovery
-    const blockstunEndPct = preset.blockstunFrames / totalFrames;
-    const targetStartPct = (preset.blockstunFrames + delayMin) / totalFrames;
-    const targetEndPct = (preset.blockstunFrames + delayMax) / totalFrames;
+    // ── Complex version (preset) ──
+    // Visual segments matching real GGST timeline:
+    //   hitstop → early(联防) → cancel window start → TARGET WINDOW → too late
+    const hitstopPct    = preset.hitstopFrames / totalFrames;
+    const blockstunEndPct = (preset.hitstopFrames + preset.blockstunFrames) / totalFrames;
+    const targetStartPct = targetStart / totalFrames;
+    const targetEndPct   = targetEnd / totalFrames;
 
     const segments: VisualCueSegment[] = [
-      { label: 'blockstun', startPct: 0, endPct: blockstunEndPct, color: 'rgba(100,116,139,0.4)' },
-      { label: 'delay gap', startPct: blockstunEndPct, endPct: targetStartPct, color: 'var(--color-barEarly)' },
-      { label: 'target', startPct: targetStartPct, endPct: targetEndPct, color: 'var(--color-barSuccess)' },
-      { label: 'miss', startPct: targetEndPct, endPct: 1, color: 'var(--color-barLate)' },
+      {
+        label: 'hitstop',
+        startPct: 0,
+        endPct: hitstopPct,
+        color: 'var(--color-barBlockstun)',
+      },
+      {
+        label: '联防 (blockstun)',
+        startPct: hitstopPct,
+        endPct: targetStartPct,
+        color: 'var(--color-barEarly)',
+      },
+      {
+        label: '目标窗口 (frame trap)',
+        startPct: targetStartPct,
+        endPct: targetEndPct,
+        color: 'var(--color-barSuccess)',
+      },
+      {
+        label: '过晚',
+        startPct: targetEndPct,
+        endPct: 1,
+        color: 'var(--color-barLate)',
+      },
     ];
 
     const labels: VisualCueLabel[] = [
-      { position: 0, label: '0f' },
-      { position: blockstunEndPct, label: `${preset.blockstunFrames}f` },
-      { position: targetStartPct, label: `${preset.blockstunFrames + delayMin}f` },
-      { position: targetEndPct, label: `${preset.blockstunFrames + delayMax}f` },
-      { position: 1, label: `${totalFrames}f` },
+      { position: 0, label: '0f (hit)' },
+      { position: hitstopPct, label: `${preset.hitstopFrames}f` },
+      { position: blockstunEndPct, label: `${preset.hitstopFrames + preset.blockstunFrames}f` },
+      { position: targetStartPct, label: `${targetStart}f (start)` },
+      { position: targetEndPct, label: `${targetEnd}f (end)` },
+    ];
+
+    const legendItems = [
+      { color: 'var(--color-barBlockstun)', label: 'hitstop' },
+      { color: 'var(--color-barEarly)', label: '联防区' },
+      { color: 'var(--color-barSuccess)', label: '目标窗口' },
+      { color: 'var(--color-barLate)', label: '过晚' },
     ];
 
     return (
@@ -46,39 +77,27 @@ export const FrameTrapVisualCue: React.FC<{
           segments={segments}
           labels={labels}
           totalFrames={totalFrames}
+          showLegend
+          legendItems={legendItems}
         />
-        <div className="flex justify-center gap-3 mt-1 text-[9px] text-gray-400">
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-sm inline-block" style={{ backgroundColor: 'rgba(100,116,139,0.4)' }} />
-            防御硬直
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-sm inline-block" style={{ backgroundColor: 'var(--color-barEarly)' }} />
-            延迟
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-sm inline-block" style={{ backgroundColor: 'var(--color-barSuccess)' }} />
-            目标窗口
-          </span>
-        </div>
       </div>
     );
   }
 
-  // Simple version (manual mode): just target window
-  const targetStartPct = delayMin / totalFrames;
-  const targetEndPct = delayMax / totalFrames;
+  // ── Simple version (manual) ──
+  const simpleTargetStartPct = settings.delayMin / totalFrames;
+  const simpleTargetEndPct   = settings.delayMax / totalFrames;
 
   const segments: VisualCueSegment[] = [
-    { label: 'early', startPct: 0, endPct: targetStartPct, color: 'var(--color-barEarly)' },
-    { label: 'target', startPct: targetStartPct, endPct: targetEndPct, color: 'var(--color-barSuccess)' },
-    { label: 'late', startPct: targetEndPct, endPct: 1, color: 'var(--color-barLate)' },
+    { label: 'early', startPct: 0, endPct: simpleTargetStartPct, color: 'var(--color-barEarly)' },
+    { label: 'target', startPct: simpleTargetStartPct, endPct: simpleTargetEndPct, color: 'var(--color-barSuccess)' },
+    { label: 'late', startPct: simpleTargetEndPct, endPct: 1, color: 'var(--color-barLate)' },
   ];
 
   const labels: VisualCueLabel[] = [
     { position: 0, label: '0f' },
-    { position: targetStartPct, label: `${delayMin}f` },
-    { position: targetEndPct, label: `${delayMax}f` },
+    { position: simpleTargetStartPct, label: `${settings.delayMin}f` },
+    { position: simpleTargetEndPct, label: `${settings.delayMax}f` },
     { position: 1, label: `${totalFrames}f` },
   ];
 
