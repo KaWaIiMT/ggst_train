@@ -41,15 +41,18 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
   const [ggstBinds, setGgstBinds] = useState<Record<string, GgstBind>>({ ...DEFAULT_GGST_BINDS });
   const [listeningAction, setListeningAction] = useState<string | null>(null);
 
-  // ── Training params (same structure as RCC) ──
+  // ── Training params ──
+  // From your derivation: fastest 5P→5P = -5f gap.
+  // To get 1f gap → delay 6f; 5f gap → delay 10f.
+  // Target: delay 6-10f after 1st P connects.
   const { stats, updateStats, resetStats } = useStats();
   const [feedback, setFeedback] = useState<FeedbackState>({ status: 'idle', message: '准备', frames: 0 });
   const [showVisualCue, setShowVisualCue] = useState(true);
-  const [t1Time, setT1Time] = useState<number | null>(null);  // first press
-  const [t2Time, setT2Time] = useState<number | null>(null);  // second press
-  const [minFrame, setMinFrame] = useState(12);   // Leo 5P→5P: hitstop+blockstun ≈ 20f, target gap 1-5f
-  const [maxFrame, setMaxFrame] = useState(16);
-  const [totalFrames, setTotalFrames] = useState(40);
+  const [t1Time, setT1Time] = useState<number | null>(null);
+  const [t2Time, setT2Time] = useState<number | null>(null);
+  const [minFrame, setMinFrame] = useState(6);
+  const [maxFrame, setMaxFrame] = useState(10);
+  const [totalFrames, setTotalFrames] = useState(30);
   const [btn1Active, setBtn1Active] = useState(false);
   const [btn2Active, setBtn2Active] = useState(false);
 
@@ -57,6 +60,7 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previousGamepadState = useRef<boolean[]>([]);
   const pressCountRef = useRef(0);
+  const lastT2Ref = useRef(0);  // throttle duplicate stopTimer calls
   const keysPressed = useRef<Set<string>>(new Set());
 
   // ── Which buttons? ──
@@ -94,6 +98,9 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
   const stopTimer = useCallback(() => {
     if (pressCountRef.current !== 1) return;
     const now = performance.now();
+    // Deduplicate: ignore rapid re-invocations within 50ms
+    if (now - lastT2Ref.current < 50) return;
+    lastT2Ref.current = now;
     setT2Time(now);
     setBtn2Active(true);
     setTimeout(() => setBtn2Active(false), 100);
