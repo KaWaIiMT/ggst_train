@@ -5,8 +5,33 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Default theme CSS custom property fallbacks */
+:root {
+  --color-bg: #F5F5F7;
+  --color-bgCard: #FFFFFF;
+  --color-bgFeedback: #FFFFFF;
+  --color-text: #1D1D1F;
+  --color-textSecondary: #9CA3AF;
+  --color-accent: #1D8385;
+  --color-accentHover: #156668;
+  --color-accentLight: #F0FAFA;
+  --color-success: #1D8385;
+  --color-successBg: #F0FAFA;
+  --color-failure: #E02424;
+  --color-failureBg: #FFF0F0;
+  --color-early: #1E3A8A;
+  --color-earlyBg: #F0F4FA;
+  --color-late: #D4AF37;
+  --color-lateBg: #FDF9F0;
+  --color-border: #E5E7EB;
+  --color-barBg: #E5E7EB;
+  --color-barEarly: rgba(30, 58, 138, 0.3);
+  --color-barSuccess: rgba(29, 131, 133, 0.5);
+  --color-barLate: rgba(212, 175, 55, 0.3);
+}
+
 body {
-  background-color: #F5F5F7;
-  color: #1D1D1F;
+  background-color: var(--color-bg);
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
 }
