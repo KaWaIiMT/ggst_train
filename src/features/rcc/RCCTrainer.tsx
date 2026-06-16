@@ -48,6 +48,8 @@ export const RCCTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   const [rcActive, setRcActive] = useState(false);
   const [attackActive, setAttackActive] = useState(false);
+  // Track which GGST button was used to attack (for display)
+  const [lastAttackButton, setLastAttackButton] = useState<string | null>(null);
   const [currentDirection, setCurrentDirection] = useState(5);
   const [showJoystick, setShowJoystick] = useState(true);
 
@@ -226,9 +228,10 @@ export const RCCTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         inputStateRef.current.rc = true;
         handleRcPress();
       } else if (action === 'Dash') {
-        // Dash macro pressed
+        // Dash macro — doesn't trigger RC or attack
       } else if (['P', 'K', 'S', 'H', 'D'].includes(action)) {
         inputStateRef.current.attack = true;
+        setLastAttackButton(action);
         handleAttackPress();
       }
       addEntry(currentDirection, [action]);
@@ -296,16 +299,19 @@ export const RCCTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       setCurrentDirection(newDir);
       if (newDir !== 5) motionBufferRef.current.push(newDir);
     }
+
+    // Edge-detect RC press
+    const rcWasPressed = inputStateRef.current.rc;
     inputStateRef.current.rc = !!rc;
+    if (rc && !rcWasPressed) handleRcPress();
+
+    // Edge-detect attack press
+    const atkWasPressed = inputStateRef.current.attack;
     inputStateRef.current.attack = !!attack;
-
-    if (rc && !inputStateRef.current.rc) handleRcPress();
-    if (attack && !inputStateRef.current.attack) handleAttackPress();
-
-    const btnList: string[] = [];
-    if (rc) btnList.push('RC');
-    if (atkBtn) btnList.push(atkBtn);
-    addEntry(newDir, btnList);
+    if (attack && !atkWasPressed) {
+      if (atkBtn) setLastAttackButton(atkBtn);
+      handleAttackPress();
+    }
 
     buttons.forEach((b, i) => { previousGamepadState.current[i] = b.pressed; });
   });

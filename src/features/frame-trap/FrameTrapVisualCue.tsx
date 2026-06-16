@@ -9,59 +9,32 @@ export const FrameTrapVisualCue: React.FC<{
   show: boolean;
   preset: FrameTrapPreset | null;
   settings: FrameTrapSettings;
-  // The target frame window in "absolute" time from trigger
   targetStart: number;
   targetEnd: number;
 }> = ({ triggerTime, hitTime, feedbackFrames, show, preset, settings, targetStart, targetEnd }) => {
   const totalFrames = preset ? preset.totalFrames : settings.totalFrames;
 
   if (preset) {
-    // ── Complex version (preset) ──
-    // Visual segments matching real GGST timeline:
-    //   hitstop → early(联防) → cancel window start → TARGET WINDOW → too late
-    const hitstopPct    = preset.hitstopFrames / totalFrames;
-    const blockstunEndPct = (preset.hitstopFrames + preset.blockstunFrames) / totalFrames;
+    const hitstopPct = preset.hitstopFrames / totalFrames;
     const targetStartPct = targetStart / totalFrames;
-    const targetEndPct   = targetEnd / totalFrames;
+    const targetEndPct = targetEnd / totalFrames;
 
     const segments = [
-      {
-        label: 'hitstop',
-        startPct: 0,
-        endPct: hitstopPct,
-        color: 'var(--color-barBlockstun)',
-      },
-      {
-        label: '联防 (blockstun)',
-        startPct: hitstopPct,
-        endPct: targetStartPct,
-        color: 'var(--color-barEarly)',
-      },
-      {
-        label: '目标窗口 (frame trap)',
-        startPct: targetStartPct,
-        endPct: targetEndPct,
-        color: 'var(--color-barSuccess)',
-      },
-      {
-        label: '过晚',
-        startPct: targetEndPct,
-        endPct: 1,
-        color: 'var(--color-barLate)',
-      },
+      { label: 'hitstop', startPct: 0, endPct: hitstopPct, color: 'var(--color-barBlockstun)' },
+      { label: 'blockstun', startPct: hitstopPct, endPct: targetStartPct, color: 'var(--color-barEarly)' },
+      { label: 'frame trap', startPct: targetStartPct, endPct: targetEndPct, color: 'var(--color-barSuccess)' },
+      { label: 'miss', startPct: targetEndPct, endPct: 1, color: 'var(--color-barLate)' },
     ];
 
     const labels = [
-      { position: 0, label: '0f (hit)' },
-      { position: hitstopPct, label: `${preset.hitstopFrames}f` },
-      { position: blockstunEndPct, label: `${preset.hitstopFrames + preset.blockstunFrames}f` },
-      { position: targetStartPct, label: `${targetStart}f (start)` },
-      { position: targetEndPct, label: `${targetEnd}f (end)` },
+      { position: 0, label: '0f' },
+      { position: targetStartPct, label: `🎯 ${targetStart}f` },
+      { position: targetEndPct, label: `${targetEnd}f` },
     ];
 
     const legendItems = [
       { color: 'var(--color-barBlockstun)', label: 'hitstop' },
-      { color: 'var(--color-barEarly)', label: '联防区' },
+      { color: 'var(--color-barEarly)', label: '联防' },
       { color: 'var(--color-barSuccess)', label: '目标窗口' },
       { color: 'var(--color-barLate)', label: '过晚' },
     ];
@@ -69,46 +42,35 @@ export const FrameTrapVisualCue: React.FC<{
     return (
       <div className="w-full">
         <VisualCueBar
-          triggerTime={triggerTime}
-          hitTime={hitTime}
-          feedbackFrames={feedbackFrames}
-          show={show}
-          segments={segments}
-          labels={labels}
-          totalFrames={totalFrames}
-          showLegend
-          legendItems={legendItems}
+          triggerTime={triggerTime} hitTime={hitTime} feedbackFrames={feedbackFrames}
+          show={show} segments={segments} labels={labels} totalFrames={totalFrames}
+          showLegend legendItems={legendItems}
         />
       </div>
     );
   }
 
-  // ── Simple version (manual) ──
-  const simpleTargetStartPct = settings.delayMin / totalFrames;
-  const simpleTargetEndPct   = settings.delayMax / totalFrames;
+  // Manual
+  const sPct = settings.delayMin / totalFrames;
+  const ePct = settings.delayMax / totalFrames;
 
   const segments = [
-    { label: 'early', startPct: 0, endPct: simpleTargetStartPct, color: 'var(--color-barEarly)' },
-    { label: 'target', startPct: simpleTargetStartPct, endPct: simpleTargetEndPct, color: 'var(--color-barSuccess)' },
-    { label: 'late', startPct: simpleTargetEndPct, endPct: 1, color: 'var(--color-barLate)' },
+    { label: 'early', startPct: 0, endPct: sPct, color: 'var(--color-barEarly)' },
+    { label: 'target', startPct: sPct, endPct: ePct, color: 'var(--color-barSuccess)' },
+    { label: 'late', startPct: ePct, endPct: 1, color: 'var(--color-barLate)' },
   ];
 
   const labels = [
     { position: 0, label: '0f' },
-    { position: simpleTargetStartPct, label: `${settings.delayMin}f` },
-    { position: simpleTargetEndPct, label: `${settings.delayMax}f` },
+    { position: sPct, label: `${settings.delayMin}f` },
+    { position: ePct, label: `${settings.delayMax}f` },
     { position: 1, label: `${totalFrames}f` },
   ];
 
   return (
     <VisualCueBar
-      triggerTime={triggerTime}
-      hitTime={hitTime}
-      feedbackFrames={feedbackFrames}
-      show={show}
-      segments={segments}
-      labels={labels}
-      totalFrames={totalFrames}
+      triggerTime={triggerTime} hitTime={hitTime} feedbackFrames={feedbackFrames}
+      show={show} segments={segments} labels={labels} totalFrames={totalFrames}
     />
   );
 };

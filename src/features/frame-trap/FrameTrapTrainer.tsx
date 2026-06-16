@@ -55,10 +55,22 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
   const pressCountRef = useRef(0);
 
   // Derived from preset or manual
-  const currentDelayMin = selectedPreset ? selectedPreset.delayWindowMin : manualSettings.delayMin;
-  const currentDelayMax = selectedPreset ? selectedPreset.delayWindowMax : manualSettings.delayMax;
+  // For presets: target window is expressed in absolute frame count
+  //   from move1 hit (hitstop + blockstun + gap). This maps to the real GGST
+  //   timeline the visual cue bar shows.
+  // For manual: raw frame count from first key press.
+  const targetStart = selectedPreset
+    ? selectedPreset.hitstopFrames + selectedPreset.blockstunFrames + selectedPreset.targetGapMin
+    : manualSettings.delayMin;
+  const targetEnd = selectedPreset
+    ? selectedPreset.hitstopFrames + selectedPreset.blockstunFrames + selectedPreset.targetGapMax
+    : manualSettings.delayMax;
+  const currentDelayMin = targetStart;
+  const currentDelayMax = targetEnd;
   const currentTotalFrames = selectedPreset ? selectedPreset.totalFrames : manualSettings.totalFrames;
-  const currentTriggerMode: TriggerMode = selectedPreset ? selectedPreset.triggerMode : manualSettings.triggerMode;
+  const currentTriggerMode: TriggerMode = selectedPreset
+    ? selectedPreset.triggerMode
+    : manualSettings.triggerMode;
 
   // Which buttons are in play
   const activeButtons: GgstButton[] = selectedPreset
