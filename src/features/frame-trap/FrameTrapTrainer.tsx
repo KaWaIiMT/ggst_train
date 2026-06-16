@@ -59,9 +59,8 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
   const t1Ref = useRef<number | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const previousGamepadState = useRef<boolean[]>([]);
-  const pressCountRef = useRef(0);
-  const lastT2Ref = useRef(0);  // throttle duplicate stopTimer calls
   const keysPressed = useRef<Set<string>>(new Set());
+  const isRunningRef = useRef(false);  // true between startTimer and stopTimer
   const lastT1Ref = useRef(0);  // dedupe startTimer
 
   // ── Which buttons? ──
@@ -85,33 +84,25 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
 
   // ── Triggers ──
   const startTimer = useCallback(() => {
-    if (pressCountRef.current !== 0) return;
+    if (isRunningRef.current) return;
     const now = performance.now();
-    // Deduplicate — ignore if we already handled a key in the last 60ms
-    if (now - lastT1Ref.current < 60) return;
-    lastT1Ref.current = now;
     t1Ref.current = now;
     setT1Time(now);
     setT2Time(null);
-    pressCountRef.current = 1;
+    isRunningRef.current = true;
     setBtn1Active(true);
     setTimeout(() => setBtn1Active(false), 100);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => { t1Ref.current = null; pressCountRef.current = 0; }, 600);
+    timeoutRef.current = setTimeout(() => { t1Ref.current = null; isRunningRef.current = false; }, 600);
   }, []);
 
   const stopTimer = useCallback(() => {
-    // Must be in count=1 state (timer was started)
-    if (pressCountRef.current !== 1) return;
+    if (!isRunningRef.current) return;
     const now = performance.now();
-    // Deduplicate rapid re-invocations (same keydown event can fire multiple callbacks)
-    if (now - lastT2Ref.current < 80) return;
-    lastT2Ref.current = now;
-
-    // Guard: don't allow stopTimer right after startTimer (<80ms) —
-    // this prevents the same physical keypress from being counted as both start and stop
+    // Ignore if within 80ms of start (same physical keypress)
     if (t1Ref.current && (now - t1Ref.current) < 80) return;
 
+    isRunningRef.current = false;
     setT2Time(now);
     setBtn2Active(true);
     setTimeout(() => setBtn2Active(false), 100);
@@ -119,13 +110,11 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
     if (!t1Ref.current) {
       setFeedback({ status: 'late', message: `✖ 先按 ${button1} 开始`, frames: 0 });
       updateStats('late', 0);
-      pressCountRef.current = 0;
       return;
     }
 
     const diffFrames = Math.round((now - t1Ref.current) / (1000 / 60));
     t1Ref.current = null;
-    pressCountRef.current = 0;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
     if (diffFrames > totalFrames) {
@@ -168,10 +157,10 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
       e.preventDefault();
       setInputDevice('keyboard');
       if (action === button1) {
-        if (pressCountRef.current === 0) startTimer();
-        else if (pressCountRef.current === 1) stopTimer();
+        if (!isRunningRef.current) startTimer();
+        else stopTimer();
       } else if (action === button2 && button2 !== button1) {
-        if (pressCountRef.current === 1) stopTimer();
+        if (isRunningRef.current) stopTimer();
       }
     };
     const hku = (e: KeyboardEvent) => { keysPressed.current.delete(e.code); };
@@ -196,10 +185,10 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
     const action = ALL_GGST_ACTIONS.find(a => buttons[ggstBinds[a]?.gamepad]?.pressed);
     if (action) setInputDevice('gamepad');
     if (action === button1) {
-      if (pressCountRef.current === 0) startTimer();
-      else if (pressCountRef.current === 1) stopTimer();
+      if (!isRunningRef.current) startTimer();
+      else stopTimer();
     } else if (action === button2 && button2 !== button1) {
-      if (pressCountRef.current === 1) stopTimer();
+      if (isRunningRef.current) stopTimer();
     }
     buttons.forEach((b, i) => { previousGamepadState.current[i] = b.pressed; });
   });
