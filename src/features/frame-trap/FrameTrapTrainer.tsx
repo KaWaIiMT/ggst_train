@@ -140,8 +140,13 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
       // directions via arrows/WASD — we don't use them for frame trap but keep for consistency
       const action = ALL_GGST_ACTIONS.find(a => ggstBinds[a]?.key === e.code);
       if (!action) return;
-      if (keysPressed.current.has(e.code)) return;
+
+      // Only debounce if action is NOT our trigger buttons
+      // (single-key trigger needs both keydown events)
+      const isTrigger = (action === button1) || (button2 !== button1 && action === button2);
+      if (!isTrigger && keysPressed.current.has(e.code)) return;
       keysPressed.current.add(e.code);
+
       e.preventDefault();
       setInputDevice('keyboard');
       if (action === button1) {
