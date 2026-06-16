@@ -1,11 +1,35 @@
 export type FeedbackStatus = 'success' | 'early' | 'late' | 'motion_fail' | 'idle';
-
 export type MotionType = 'none' | '236' | '214';
-
 export type TrainingMode = 'rcc' | 'frame-trap';
-
 export type TriggerMode = 'single' | 'dual';
 
+// ── GGST Input System ──────────────────────────────
+// Dustloop reference: https://www.dustloop.com/w/GGST/Controls
+// 5 main attack buttons + Dash + Roman Cancel
+export type GgstButton = 'P' | 'K' | 'S' | 'H' | 'D';
+export type GgstMacro = 'Dash' | 'RC';
+export type GgstAction = GgstButton | GgstMacro;
+
+export interface GgstBind {
+  key: string;       // KeyboardEvent.code
+  gamepad: number;   // gamepad button index
+}
+
+// Default GGST button colors (matching in-game)
+export const GGST_BUTTON_COLORS: Record<GgstButton, string> = {
+  P: '#E02424', // red — Punch
+  K: '#3B82F6', // blue — Kick
+  S: '#F59E0B', // amber — Slash
+  H: '#22C55E', // green — Heavy Slash
+  D: '#A855F7', // purple — Dust
+};
+
+export const GGST_MACRO_COLORS: Record<GgstMacro, string> = {
+  Dash: '#F97316', // orange
+  RC:   '#EC4899', // pink
+};
+
+// ── RCC Mode types ──────────────────────────────────
 export interface Stats {
   total: number;
   success: number;
@@ -29,36 +53,6 @@ export interface InputHistoryEntry {
   endTimestamp: number | null;
 }
 
-export interface KeyBinds {
-  rcKey: string;
-  attackKey: string;
-  upKey: string;
-  downKey: string;
-  leftKey: string;
-  rightKey: string;
-  rcButton: number;
-  attackButton: number;
-  upButton: number;
-  downButton: number;
-  leftButton: number;
-  rightButton: number;
-}
-
-export interface FrameTrapKeyBinds {
-  attack1Key: string;
-  attack2Key: string;
-  upKey: string;
-  downKey: string;
-  leftKey: string;
-  rightKey: string;
-  attack1Button: number;
-  attack2Button: number;
-  upButton: number;
-  downButton: number;
-  leftButton: number;
-  rightButton: number;
-}
-
 export interface InputState {
   up: boolean;
   down: boolean;
@@ -69,6 +63,7 @@ export interface InputState {
   attack: boolean;
 }
 
+// ── Theme types ─────────────────────────────────────
 export interface ThemeColors {
   bg: string;
   bgCard: string;
@@ -88,9 +83,12 @@ export interface ThemeColors {
   lateBg: string;
   border: string;
   barBg: string;
+  barSlider: string;
   barEarly: string;
   barSuccess: string;
   barLate: string;
+  barBlockstun: string;
+  barGrid: string;
 }
 
 export interface Theme {
@@ -100,6 +98,7 @@ export interface Theme {
   colors: ThemeColors;
 }
 
+// ── Frame Trap types ────────────────────────────────
 export interface FrameTrapMove {
   name: string;
   input: string;
@@ -122,6 +121,8 @@ export interface FrameTrapPreset {
   description: string;
   move1: FrameTrapMove;
   move2: FrameTrapMove;
+  buttons: GgstButton[];
+  triggerMode: TriggerMode;
   blockstunFrames: number;
   delayWindowMin: number;
   delayWindowMax: number;
@@ -136,6 +137,7 @@ export interface FrameTrapSettings {
   triggerMode: TriggerMode;
 }
 
+// ── Visual Cue types ────────────────────────────────
 export interface VisualCueSegment {
   label: string;
   startPct: number;

@@ -1,5 +1,29 @@
-import type { Theme } from '../types';
+import type { Theme, GgstButton, GgstMacro, GgstBind } from '../types';
 
+// ── Default GGST bindings ────────────────────────────
+// Dustloop reference: https://www.dustloop.com/w/GGST/Controls
+// Common default keyboard layout (Type A in GGST):
+//   P=J  K=K  S=L  H=I  D=U  Dash=N  RC=Space
+// Gamepad defaults (PS4/PS5):
+//   P=2(□)  K=1(×)  S=3(△)  H=0(○)  D=5(R1)
+//   Dash=9(L1)  RC=6(L2/R2)
+
+export const GGST_BUTTONS: GgstButton[] = ['P', 'K', 'S', 'H', 'D'];
+export const GGST_MACROS: GgstMacro[] = ['Dash', 'RC'];
+
+export const ALL_GGST_ACTIONS = [...GGST_BUTTONS, ...GGST_MACROS];
+
+export const DEFAULT_GGST_BINDS: Record<string, GgstBind> = {
+  P:    { key: 'KeyJ', gamepad: 2  },
+  K:    { key: 'KeyK', gamepad: 1  },
+  S:    { key: 'KeyL', gamepad: 3  },
+  H:    { key: 'KeyI', gamepad: 0  },
+  D:    { key: 'KeyU', gamepad: 5  },
+  Dash: { key: 'KeyN', gamepad: 9  },
+  RC:   { key: 'Space', gamepad: 6  },
+};
+
+// ── Themes ───────────────────────────────────────────
 export const themes: Record<string, Theme> = {
   teal: {
     id: 'teal',
@@ -18,15 +42,18 @@ export const themes: Record<string, Theme> = {
       successBg: '#F0FAFA',
       failure: '#E02424',
       failureBg: '#FFF0F0',
-      early: '#1E3A8A',
-      earlyBg: '#F0F4FA',
+      early: '#E02424',
+      earlyBg: '#FFF0F0',
       late: '#D4AF37',
       lateBg: '#FDF9F0',
       border: '#E5E7EB',
       barBg: '#E5E7EB',
-      barEarly: 'rgba(30,58,138,0.3)',
-      barSuccess: 'rgba(29,131,133,0.5)',
-      barLate: 'rgba(212,175,55,0.3)',
+      barSlider: '#1F2937',
+      barEarly: '#EF4444',
+      barSuccess: '#22C55E',
+      barLate: '#EAB308',
+      barBlockstun: '#94A3B8',
+      barGrid: '#D1D5DB',
     },
   },
   indigo: {
@@ -46,15 +73,18 @@ export const themes: Record<string, Theme> = {
       successBg: '#F0FFF4',
       failure: '#FF3B30',
       failureBg: '#FFF0EF',
-      early: '#5856D6',
-      earlyBg: '#F0EFFE',
+      early: '#FF3B30',
+      earlyBg: '#FFF0EF',
       late: '#FF9500',
       lateBg: '#FFF7EF',
       border: '#E5E5EA',
       barBg: '#E5E5EA',
-      barEarly: 'rgba(88,86,214,0.3)',
-      barSuccess: 'rgba(52,199,89,0.5)',
-      barLate: 'rgba(255,149,0,0.3)',
+      barSlider: '#1F2937',
+      barEarly: '#EF4444',
+      barSuccess: '#22C55E',
+      barLate: '#EAB308',
+      barBlockstun: '#94A3B8',
+      barGrid: '#D1D5DB',
     },
   },
   rose: {
@@ -74,15 +104,18 @@ export const themes: Record<string, Theme> = {
       successBg: '#F0FFF4',
       failure: '#E03A5A',
       failureBg: '#FFF0F3',
-      early: '#007AFF',
-      earlyBg: '#F0F6FF',
+      early: '#E03A5A',
+      earlyBg: '#FFF0F3',
       late: '#FF9500',
       lateBg: '#FFF7EF',
       border: '#F0F0F0',
       barBg: '#F0F0F0',
-      barEarly: 'rgba(0,122,255,0.3)',
-      barSuccess: 'rgba(52,199,89,0.5)',
-      barLate: 'rgba(255,149,0,0.3)',
+      barSlider: '#1F2937',
+      barEarly: '#EF4444',
+      barSuccess: '#22C55E',
+      barLate: '#EAB308',
+      barBlockstun: '#94A3B8',
+      barGrid: '#D1D5DB',
     },
   },
   amber: {
@@ -102,15 +135,18 @@ export const themes: Record<string, Theme> = {
       successBg: '#ECFDF5',
       failure: '#DC2626',
       failureBg: '#FEF2F2',
-      early: '#2563EB',
-      earlyBg: '#EFF6FF',
+      early: '#DC2626',
+      earlyBg: '#FEF2F2',
       late: '#D97706',
       lateBg: '#FFFBEB',
       border: '#F5F0E0',
       barBg: '#F5F0E0',
-      barEarly: 'rgba(37,99,235,0.3)',
-      barSuccess: 'rgba(5,150,105,0.5)',
-      barLate: 'rgba(217,119,6,0.3)',
+      barSlider: '#1F2937',
+      barEarly: '#EF4444',
+      barSuccess: '#22C55E',
+      barLate: '#EAB308',
+      barBlockstun: '#94A3B8',
+      barGrid: '#D1D5DB',
     },
   },
   mint: {
@@ -130,15 +166,18 @@ export const themes: Record<string, Theme> = {
       successBg: '#F0FFF4',
       failure: '#FF3B30',
       failureBg: '#FFF0EF',
-      early: '#007AFF',
-      earlyBg: '#F0F6FF',
+      early: '#FF3B30',
+      earlyBg: '#FFF0EF',
       late: '#FF9500',
       lateBg: '#FFF7EF',
       border: '#E2E8E4',
       barBg: '#E2E8E4',
-      barEarly: 'rgba(0,122,255,0.3)',
-      barSuccess: 'rgba(52,199,89,0.5)',
-      barLate: 'rgba(255,149,0,0.3)',
+      barSlider: '#1F2937',
+      barEarly: '#EF4444',
+      barSuccess: '#22C55E',
+      barLate: '#EAB308',
+      barBlockstun: '#94A3B8',
+      barGrid: '#D1D5DB',
     },
   },
   midnight: {
@@ -158,15 +197,18 @@ export const themes: Record<string, Theme> = {
       successBg: '#1A2E20',
       failure: '#FF453A',
       failureBg: '#2E1A1A',
-      early: '#5E5CE6',
-      earlyBg: '#1E1C32',
+      early: '#FF453A',
+      earlyBg: '#2E1A1A',
       late: '#FFD60A',
       lateBg: '#2E2C1A',
       border: '#3A3A3C',
       barBg: '#3A3A3C',
-      barEarly: 'rgba(94,92,230,0.4)',
-      barSuccess: 'rgba(48,209,88,0.5)',
-      barLate: 'rgba(255,214,10,0.4)',
+      barSlider: '#E5E5E7',
+      barEarly: '#EF4444',
+      barSuccess: '#22C55E',
+      barLate: '#EAB308',
+      barBlockstun: '#6B7280',
+      barGrid: '#4B5563',
     },
   },
 };
