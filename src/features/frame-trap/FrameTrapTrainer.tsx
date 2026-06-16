@@ -62,6 +62,7 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
   const pressCountRef = useRef(0);
   const lastT2Ref = useRef(0);  // throttle duplicate stopTimer calls
   const keysPressed = useRef<Set<string>>(new Set());
+  const lastT1Ref = useRef(0);  // dedupe startTimer
 
   // ── Which buttons? ──
   // Default: P→P (Leo 5P self-chain).  User can rebind P to whatever.
@@ -85,8 +86,12 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
   // ── Triggers ──
   const startTimer = useCallback(() => {
     if (pressCountRef.current !== 0) return;
-    t1Ref.current = performance.now();
-    setT1Time(t1Ref.current);
+    const now = performance.now();
+    // Deduplicate — ignore if we already handled a key in the last 60ms
+    if (now - lastT1Ref.current < 60) return;
+    lastT1Ref.current = now;
+    t1Ref.current = now;
+    setT1Time(now);
     setT2Time(null);
     pressCountRef.current = 1;
     setBtn1Active(true);
