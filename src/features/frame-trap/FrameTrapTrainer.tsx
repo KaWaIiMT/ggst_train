@@ -48,8 +48,8 @@ export const FrameTrapTrainer: React.FC<{ onBack: () => void }> = ({ onBack }) =
   const [t1Time, setT1Time] = useState<number | null>(null);
   const [t2Time, setT2Time] = useState<number | null>(null);
   const [minFrame, setMinFrame] = useState(21);
-  const [maxFrame, setMaxFrame] = useState(25);
-  const [totalFrames, setTotalFrames] = useState(60);
+  const [maxFrame, setMaxFrame] = useState(24);
+  const [totalFrames, setTotalFrames] = useState(45);
   const [btn1Active, setBtn1Active] = useState(false);
   const [btn2Active, setBtn2Active] = useState(false);
 
